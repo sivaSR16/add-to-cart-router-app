@@ -1,42 +1,26 @@
 import { useState, useEffect } from "react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import axios from "axios";
 import Navbar from "./components/Navbar";
-import ProductList from "./components/ProductList";
-import CartModal from "./components/CartModal";
+import ProductPage from "./pages/ProductPage";
+import CartPage from "./pages/CartPage";
 
 export default function App() {
   const [products, setProducts] = useState([]);
   const [cart, setCart] = useState([]);
-  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     axios.get("https://fakestoreapi.com/products")
-      .then(res => setProducts(res.data))
-      .catch(err => console.error(err));
+      .then(res => setProducts(res.data));
   }, []);
 
-  const addToCart = (product) => {
-    if (cart.find(item => item.id === product.id)) {
-      alert("Item already added to the cart");
-    } else {
-      setCart([...cart, product]);
-    }
-  };
-
-  const removeFromCart = (id) => {
-    setCart(cart.filter(item => item.id !== id));
-  };
-
   return (
-    <div className="min-h-screen bg-gray-100">
-      <Navbar cartCount={cart.length} onCartClick={() => setIsModalOpen(true)} />
-      <ProductList products={products} addToCart={addToCart} />
-      <CartModal 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
-        cart={cart} 
-        removeFromCart={removeFromCart}
-      />
-    </div>
+    <Router>
+      <Navbar cartCount={cart.reduce((sum, i) => sum + i.qty, 0)} />
+      <Routes>
+        <Route path="/" element={<ProductPage products={products} cart={cart} setCart={setCart} />} />
+        <Route path="/cart" element={<CartPage cart={cart} setCart={setCart} />} />
+      </Routes>
+    </Router>
   );
 }
